@@ -2,16 +2,19 @@
 const express = require('express');
 const http = require('http');
 const { Server } = require('socket.io');
+const cors = require('cors');
 const path = require('path');
 const fs = require('fs');
 
 const app = express();
 const server = http.createServer(app);
+const corsOptions = {
+  origin: '*',
+  methods: ['GET', 'POST', 'OPTIONS'],
+  allowedHeaders: ['Content-Type']
+};
 const io = new Server(server, {
-  cors: {
-    origin: '*',
-    methods: ['GET', 'POST']
-  }
+  cors: corsOptions
 });
 const backendMapDir = path.join(__dirname, 'map');
 const assetManifestPath = path.join(__dirname, 'assets-manifest.json');
@@ -42,14 +45,9 @@ function mapFilesFor(value) {
   };
 }
 
+app.use(cors(corsOptions));
+app.options(/.*/, cors(corsOptions));
 app.use(express.json({ limit: '2mb' }));
-app.use((req, res, next) => {
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET,POST,OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-  if (req.method === 'OPTIONS') return res.sendStatus(204);
-  next();
-});
 
 let gtaskList = [
   { id: 1, name: 'Upload data'}, 
